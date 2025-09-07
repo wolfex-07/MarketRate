@@ -1,8 +1,8 @@
 {
-  "name": "Rate Updater",
-  "short_name": "RateUpdater",
+  "name": "Market Rate",
+  "short_name": "MarketRate",
   "description": "Professional rate template generator",
-  "start_url": "/",
+  "start_url": "/MarketRate/",
   "display": "standalone",
   "background_color": "#667eea",
   "theme_color": "#667eea",
