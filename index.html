@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Updater</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Rate Updater">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            min-height: 100vh;
+        }
+
+        .preview-section {
+            padding: 0;
+            background: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            height: 40vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 15px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        .form-section {
+            padding: 30px;
+            background: #f8f9fa;
+            flex: 1;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+
+        .form-section h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input[type="range"] {
+            padding: 0;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            -webkit-appearance: none;
+        }
+
+        .form-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .form-group input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .form-group input[type="color"] {
+            width: 60px;
+            height: 40px;
+            padding: 0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            padding: 8px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 36px;
+            height: 36px;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .action-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .share-btn {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            box-shadow: 0 2px 8px rgba(37, 211, 102, 0.2);
+        }
+
+        .share-btn:hover:not(:disabled) {
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+        }
+
+        .action-btn svg {
+            width: 20px;
+            height: 20px;
+            color: white;
+        }
+
+        .preview-section h2 {
+            color: #333;
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .preview-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 10px;
+            position: relative;
+            overflow: auto;
+            flex: 1;
+        }
+
+        #preview-canvas {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            background: white;
+            aspect-ratio: 595/842; /* A4 ratio */
+        }
+
+        .range-value {
+            display: inline-block;
+            margin-left: 10px;
+            font-weight: 600;
+            color: #667eea;
+            min-width: 40px;
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 8px 0;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 0 15px;
+        }
+
+        .footer-content p {
+            margin: 0;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            .form-section {
+                padding: 15px;
+            }
+            
+            .form-section h1 {
+                font-size: 1.5rem;
+                margin-bottom: 20px;
+            }
+            
+            .form-group {
+                margin-bottom: 15px;
+            }
+            
+            .form-group label {
+                font-size: 0.85rem;
+            }
+            
+            .form-group input,
+            .form-group textarea {
+                padding: 10px;
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+            
+            .preview-header {
+                padding: 6px 12px;
+            }
+            
+            .preview-section h2 {
+                font-size: 1rem;
+            }
+            
+            .action-btn {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .action-btn svg {
+                width: 18px;
+                height: 18px;
+            }
+            
+            .preview-container {
+                padding: 8px;
+            }
+            
+            .footer {
+                padding: 6px 0;
+            }
+            
+            .footer-content p {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="preview-section">
+            <div class="preview-header">
+                <h2>Live Preview</h2>
+                <div class="action-buttons">
+                    <button id="download-btn" class="action-btn download-btn" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7,10 12,15 17,10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                    </button>
+                    <button id="share-btn" class="action-btn share-btn" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                            <polyline points="16,6 12,2 8,6"></polyline>
+                            <line x1="12" y1="2" x2="12" y2="15"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="preview-container">
+                <canvas id="preview-canvas" width="595" height="842"></canvas>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h1>Rate Updater</h1>
+            
+            <div class="form-group">
+                <label for="image-upload">Upload Background Image:</label>
+                <input type="file" id="image-upload" accept="image/*">
+            </div>
+
+            <div class="form-group">
+                <label for="background-opacity">Background Opacity:</label>
+                <input type="range" id="background-opacity" min="0.1" max="1" step="0.1" value="0.3">
+                <span id="opacity-value">0.3</span>
+            </div>
+
+            <div class="form-group">
+                <label for="date-input">Date:</label>
+                <input type="date" id="date-input">
+            </div>
+
+            <div class="form-group">
+                <label for="table-data">Table Data (one per line):</label>
+                <textarea id="table-data" rows="10" placeholder="Enter data for each cell, one per line..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="text-color">Text Color:</label>
+                <input type="color" id="text-color" value="#000000">
+            </div>
+
+        </div>
+        
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2025 Karan Jaiswal Softwares</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        class TemplateGenerator {
+            constructor() {
+                this.canvas = document.getElementById('preview-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.backgroundImage = null;
+                this.tableData = [];
+                
+                this.initializeEventListeners();
+                this.setupDefaultTemplate();
+            }
+
+            initializeEventListeners() {
+                // Set today's date as default
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('date-input').value = today;
+                
+                // Form controls
+                document.getElementById('image-upload').addEventListener('change', (e) => this.handleImageUpload(e));
+                document.getElementById('background-opacity').addEventListener('input', (e) => {
+                    document.getElementById('opacity-value').textContent = e.target.value;
+                    this.generateTemplate();
+                });
+                document.getElementById('date-input').addEventListener('change', () => this.generateTemplate());
+                document.getElementById('table-data').addEventListener('input', () => this.generateTemplate());
+                document.getElementById('text-color').addEventListener('change', () => this.generateTemplate());
+                
+                // Buttons
+                document.getElementById('download-btn').addEventListener('click', () => this.downloadImage());
+                document.getElementById('share-btn').addEventListener('click', () => this.shareImage());
+            }
+
+            setupDefaultTemplate() {
+                // Create a default background with gradient
+                this.createDefaultBackground();
+                this.generateTemplate();
+            }
+
+            createDefaultBackground() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 595;  // A4 width in pixels (at 72 DPI)
+                canvas.height = 842; // A4 height in pixels (at 72 DPI)
+                const ctx = canvas.getContext('2d');
+                
+                // Create a beautiful gradient background
+                const gradient = ctx.createLinearGradient(0, 0, 595, 842);
+                gradient.addColorStop(0, '#667eea');
+                gradient.addColorStop(0.5, '#764ba2');
+                gradient.addColorStop(1, '#f093fb');
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, 595, 842);
+                
+                // Add some decorative elements
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                for (let i = 0; i < 20; i++) {
+                    ctx.beginPath();
+                    ctx.arc(Math.random() * 595, Math.random() * 842, Math.random() * 50 + 10, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // Convert canvas to image
+                this.backgroundImage = new Image();
+                this.backgroundImage.src = canvas.toDataURL();
+            }
+
+            handleImageUpload(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.backgroundImage = new Image();
+                        this.backgroundImage.onload = () => {
+                            this.generateTemplate();
+                        };
+                        this.backgroundImage.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+
+            // Function to fit image to A4 size while filling the entire frame
+            fitImageToA4(image, canvasWidth, canvasHeight) {
+                const imageAspectRatio = image.width / image.height;
+                const canvasAspectRatio = canvasWidth / canvasHeight;
+                
+                let drawWidth, drawHeight, offsetX, offsetY;
+                
+                if (imageAspectRatio > canvasAspectRatio) {
+                    // Image is wider than canvas - fit to height and crop width
+                    drawHeight = canvasHeight;
+                    drawWidth = canvasHeight * imageAspectRatio;
+                    offsetX = (canvasWidth - drawWidth) / 2;
+                    offsetY = 0;
+                } else {
+                    // Image is taller than canvas - fit to width and crop height
+                    drawWidth = canvasWidth;
+                    drawHeight = canvasWidth / imageAspectRatio;
+                    offsetX = 0;
+                    offsetY = (canvasHeight - drawHeight) / 2;
+                }
+                
+                return { drawWidth, drawHeight, offsetX, offsetY };
+            }
+
+            generateTemplate() {
+                if (!this.backgroundImage) return;
+
+                const opacity = parseFloat(document.getElementById('background-opacity').value);
+                const tableData = document.getElementById('table-data').value.split('\n').filter(line => line.trim());
+                const textColor = document.getElementById('text-color').value;
+                const selectedDate = document.getElementById('date-input').value;
+
+                // Calculate rows automatically (always 2 columns)
+                const cols = 2;
+                const rows = Math.ceil(tableData.length / cols);
+
+                // Clear canvas
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Draw background image with opacity, fitted to A4 size
+                this.ctx.globalAlpha = opacity;
+                const imageFit = this.fitImageToA4(this.backgroundImage, this.canvas.width, this.canvas.height);
+                this.ctx.drawImage(
+                    this.backgroundImage, 
+                    imageFit.offsetX, 
+                    imageFit.offsetY, 
+                    imageFit.drawWidth, 
+                    imageFit.drawHeight
+                );
+                this.ctx.globalAlpha = 1;
+
+                // Draw table (centered automatically)
+                this.drawTable(rows, cols, tableData, 'Rates', textColor, selectedDate);
+
+                // Enable download and share buttons
+                document.getElementById('download-btn').disabled = false;
+                document.getElementById('share-btn').disabled = false;
+            }
+
+            drawTable(rows, cols, tableData, tableTitle, textColor, selectedDate) {
+                const canvasWidth = this.canvas.width;
+                const canvasHeight = this.canvas.height;
+                
+                // Fixed font size
+                const fontSize = 18;
+                
+                // Calculate table dimensions based on content
+                const baseTableWidth = 400;
+                const baseCellHeight = 30; // Height per row
+                const baseTableHeight = (rows * baseCellHeight) + 40; // Dynamic height + title space
+                
+                const tableWidth = baseTableWidth;
+                const tableHeight = baseTableHeight;
+                
+                // Calculate cell dimensions
+                const cellWidth = tableWidth / cols;
+                const cellHeight = (tableHeight - 40) / rows; // Subtract title space
+                
+                // Center the table on canvas
+                const tableX = (canvasWidth - tableWidth) / 2;
+                const tableY = (canvasHeight - tableHeight) / 2;
+                
+                // Draw date at top right
+                this.ctx.fillStyle = textColor;
+                this.ctx.font = `bold ${fontSize + 4}px Arial`;
+                this.ctx.textAlign = 'right';
+                this.ctx.fillText(selectedDate, tableX + tableWidth - 10, tableY - 15);
+                
+                // Draw title
+                this.ctx.fillStyle = textColor;
+                this.ctx.font = `bold ${fontSize + 8}px Arial`;
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText(tableTitle, tableX + tableWidth/2, tableY - 15);
+
+                // Draw only outer table border (no inner lines)
+                this.ctx.strokeStyle = '#333';
+                this.ctx.lineWidth = 2;
+                this.ctx.strokeRect(tableX, tableY, tableWidth, tableHeight - 20); // Adjust for title
+
+                // Draw only vertical divider line (no horizontal lines)
+                this.ctx.strokeStyle = '#666';
+                this.ctx.lineWidth = 1;
+                this.ctx.beginPath();
+                this.ctx.moveTo(tableX + cellWidth, tableY);
+                this.ctx.lineTo(tableX + cellWidth, tableY + tableHeight - 20);
+                this.ctx.stroke();
+
+                // Draw cells and content with bold text
+                this.ctx.font = `bold ${fontSize}px Arial`;
+                this.ctx.fillStyle = textColor;
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+
+                for (let row = 0; row < rows; row++) {
+                    for (let col = 0; col < cols; col++) {
+                        const x = tableX + (col * cellWidth);
+                        const y = tableY + 20 + (row * cellHeight); // Add title offset
+                        
+                        // Draw cell content
+                        const cellIndex = (row * cols) + col;
+                        const cellText = tableData[cellIndex] || '';
+                        
+                        // Handle long text by wrapping with minimal padding
+                        this.drawWrappedText(cellText, x + cellWidth/2, y + cellHeight/2, cellWidth - 5, cellHeight - 5, fontSize);
+                    }
+                }
+            }
+
+            drawWrappedText(text, x, y, maxWidth, maxHeight, fontSize) {
+                const words = text.split(' ');
+                let line = '';
+                let lines = [];
+                
+                for (let n = 0; n < words.length; n++) {
+                    const testLine = line + words[n] + ' ';
+                    const metrics = this.ctx.measureText(testLine);
+                    const testWidth = metrics.width;
+                    
+                    if (testWidth > maxWidth && n > 0) {
+                        lines.push(line);
+                        line = words[n] + ' ';
+                    } else {
+                        line = testLine;
+                    }
+                }
+                lines.push(line);
+                
+                // Draw lines with bold font
+                this.ctx.font = `bold ${fontSize}px Arial`;
+                const lineHeight = fontSize + 4;
+                const startY = y - (lines.length * lineHeight) / 2;
+                
+                for (let i = 0; i < lines.length; i++) {
+                    this.ctx.fillText(lines[i], x, startY + (i * lineHeight));
+                }
+            }
+
+            downloadImage() {
+                const link = document.createElement('a');
+                link.download = 'template-generated.png';
+                link.href = this.canvas.toDataURL();
+                link.click();
+            }
+
+            shareImage() {
+                // Convert canvas to blob
+                this.canvas.toBlob((blob) => {
+                    if (navigator.share && navigator.canShare) {
+                        // Use native share API if available
+                        const file = new File([blob], 'rate-template.png', { type: 'image/png' });
+                        navigator.share({
+                            title: 'Rate Template',
+                            text: 'Check out this rate template!',
+                            files: [file]
+                        }).catch((error) => {
+                            console.log('Error sharing:', error);
+                            this.fallbackShare(blob);
+                        });
+                    } else {
+                        // Fallback for browsers that don't support native sharing
+                        this.fallbackShare(blob);
+                    }
+                }, 'image/png');
+            }
+
+            fallbackShare(blob) {
+                // Create a temporary URL for the blob
+                const url = URL.createObjectURL(blob);
+                
+                // Try to open WhatsApp Web with the image
+                const whatsappUrl = `https://web.whatsapp.com/send?text=Check out this rate template!`;
+                
+                // Create a temporary link to download the image
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'rate-template.png';
+                link.click();
+                
+                // Clean up the URL
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                
+                // Show a message to the user
+                alert('Image downloaded! You can now share it via WhatsApp or any other app.');
+            }
+        }
+
+        // Initialize the application when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new TemplateGenerator();
+        });
+    </script>
+</body>
+</html>
